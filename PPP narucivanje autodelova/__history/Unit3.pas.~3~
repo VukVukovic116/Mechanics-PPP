@@ -1,0 +1,524 @@
+﻿unit Unit3;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
+  FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit, FMX.ListBox, Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
+  FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async,
+  FireDAC.Phys, FireDAC.Comp.Client, FireDAC.Comp.DataSet, FireDAC.Stan.Param,
+  FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FMX.ListView.Types,
+  FMX.ListView.Appearances, FMX.ListView.Adapters.Base, FMX.ListView;
+
+type
+  TKreirajPorudzbinuForm = class(TForm)
+    edtKolicina: TEdit;
+    btnPotvrdi: TButton;
+    btnNazad: TButton;
+    FDQueryInsert: TFDQuery;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    FDQueryLoad: TFDQuery;
+    lvAutodelovi: TListView;
+    lvDobavljaci: TListView;
+    Label4: TLabel;
+    btnUcitajPodatke: TButton;
+    DodajUKorpu: TButton;
+    lvKorpa: TListView;
+    BrisanjeKorpe: TButton;
+    procedure FormShow(Sender: TObject);
+    procedure btnNazadClick(Sender: TObject);
+    procedure btnPotvrdiClick(Sender: TObject);
+    procedure lvAutodeloviItemClick(const Sender: TObject; const AItem: TListViewItem);
+    procedure lvDobavljaciItemClick(const Sender: TObject; const AItem: TListViewItem);
+    procedure btnUcitajPodatkeClick(Sender: TObject);
+    procedure DodajUKorpuClick(Sender: TObject);
+    procedure BrisanjeKorpeClick(Sender: TObject);
+  private
+    { Private declarations }
+    FIzabraniDobavljacID: Integer;
+    FIzabraniDobavljacNaziv: string;
+    FIzabraniDeoID: Integer;
+    FIzabraniDeoNaziv: string;
+    FIzabranaCena: Double;
+    FKorpaDobavljacID: Integer;
+
+    procedure UcitajSveDobavljace;
+    procedure UcitajDeloveZaDobavljaca(DobavljacID: Integer);
+    procedure ResetujFormu;
+    procedure OcistiSelekcije;
+    procedure IzracunajUkupnuCenu;
+  public
+    { Public declarations }
+    UlogovaniKorisnikID: Integer;
+    FDConnection1: TFDConnection;
+  end;
+
+var
+  KreirajPorudzbinuForm: TKreirajPorudzbinuForm;
+
+implementation
+
+{$R *.fmx}
+
+procedure TKreirajPorudzbinuForm.FormShow(Sender: TObject);
+begin
+  if Assigned(FDConnection1) then
+  begin
+    FDQueryInsert.Connection := Self.FDConnection1;
+    FDQueryLoad.Connection := Self.FDConnection1;
+    UcitajSveDobavljace;
+    lvKorpa.Items.Clear;
+    FKorpaDobavljacID := 0;
+  end
+  else
+  begin
+    ShowMessage('Greška: Forma za kreiranje porudžbine nije dobila konekciju!');
+    Self.Close;
+    Exit;
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.btnUcitajPodatkeClick(Sender: TObject);
+begin
+  UcitajSveDobavljace;
+end;
+
+procedure TKreirajPorudzbinuForm.UcitajSveDobavljace;
+var
+  ListItem: TListViewItem;
+begin
+  if not Assigned(FDConnection1) then Exit;
+  FDQueryLoad.Connection := FDConnection1;
+
+  lvDobavljaci.BeginUpdate;
+  try
+    lvDobavljaci.Items.Clear;
+    FDQueryLoad.SQL.Text := 'SELECT DobavljacID, NazivDobavljaca FROM Dobavljaci ORDER BY NazivDobavljaca';
+    FDQueryLoad.Open;
+
+    while not FDQueryLoad.Eof do
+    begin
+      ListItem := lvDobavljaci.Items.Add;
+      ListItem.Tag := FDQueryLoad.FieldByName('DobavljacID').AsInteger;
+      ListItem.Text := FDQueryLoad.FieldByName('NazivDobavljaca').AsString;
+      FDQueryLoad.Next;
+    end;
+  finally
+    if FDQueryLoad.Active then FDQueryLoad.Close;
+    lvDobavljaci.EndUpdate;
+  end;
+
+  lvAutodelovi.Items.Clear;
+  OcistiSelekcije;
+end;
+
+procedure TKreirajPorudzbinuForm.UcitajDeloveZaDobavljaca(DobavljacID: Integer);
+var
+  ListItem: TListViewItem;
+begin
+  if not Assigned(FDConnection1) then Exit;
+  FDQueryLoad.Connection := FDConnection1;
+
+  lvAutodelovi.BeginUpdate;
+  try
+    lvAutodelovi.Items.Clear;
+
+    FDQueryLoad.SQL.Text :=
+      'SELECT a.DeoID, a.NazivDela, a.Cena ' +
+      'FROM Autodelovi a ' +
+      'JOIN Ponuda p ON a.DeoID = p.DeoID ' +
+      'WHERE p.DobavljacID = :DobavljacID ' +
+      'ORDER BY a.NazivDela';
+    FDQueryLoad.ParamByName('DobavljacID').AsInteger := DobavljacID;
+    FDQueryLoad.Open;
+
+    while not FDQueryLoad.Eof do
+    begin
+      ListItem := lvAutodelovi.Items.Add;
+      ListItem.Tag := FDQueryLoad.FieldByName('DeoID').AsInteger;
+      ListItem.Text := FDQueryLoad.FieldByName('NazivDela').AsString;
+      if not FDQueryLoad.FieldByName('Cena').IsNull then
+        ListItem.Detail := FormatFloat('0.00', FDQueryLoad.FieldByName('Cena').AsFloat) + ' RSD'
+      else
+        ListItem.Detail := 'Nije definisano';
+      FDQueryLoad.Next;
+    end;
+  finally
+    if FDQueryLoad.Active then FDQueryLoad.Close;
+    lvAutodelovi.EndUpdate;
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.lvAutodeloviItemClick(const Sender: TObject; const AItem: TListViewItem);
+var
+  i: Integer;
+  PriceString: string;
+begin
+  if Assigned(AItem) and (AItem.Tag > 0) then
+  begin
+    for i := 0 to lvAutodelovi.Items.Count - 1 do
+    begin
+      if Assigned(lvAutodelovi.Items[i].Objects.FindObjectT<TListItemText>('text')) then
+        lvAutodelovi.Items[i].Objects.FindObjectT<TListItemText>('text').TextColor := TAlphaColors.Black;
+    end;
+
+    if Assigned(AItem.Objects.FindObjectT<TListItemText>('text')) then
+      AItem.Objects.FindObjectT<TListItemText>('text').TextColor := TAlphaColors.Green;
+
+    FIzabraniDeoID := AItem.Tag;
+    FIzabraniDeoNaziv := AItem.Text;
+
+    PriceString := StringReplace(AItem.Detail, ' RSD', '', [rfReplaceAll]);
+    try
+      FIzabranaCena := StrToFloatDef(PriceString, 0);
+    except
+      FIzabranaCena := 0;
+    end;
+
+    edtKolicina.Text := '';
+    edtKolicina.SetFocus;
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.lvDobavljaciItemClick(const Sender: TObject; const AItem: TListViewItem);
+var
+  i: Integer;
+begin
+  if Assigned(AItem) and (AItem.Tag > 0) then
+  begin
+    if (lvKorpa.Items.Count > 0) and (AItem.Tag <> FKorpaDobavljacID) then
+    begin
+      ShowMessage('Ne možete dodati delove od drugog dobavljača. Prvo obrišite korpu.');
+      Exit;
+    end;
+
+    for i := 0 to lvDobavljaci.Items.Count - 1 do
+    begin
+      if Assigned(lvDobavljaci.Items[i].Objects.FindObjectT<TListItemText>('text')) then
+        lvDobavljaci.Items[i].Objects.FindObjectT<TListItemText>('text').TextColor := TAlphaColors.Black;
+    end;
+
+    if Assigned(AItem.Objects.FindObjectT<TListItemText>('text')) then
+      AItem.Objects.FindObjectT<TListItemText>('text').TextColor := TAlphaColors.Blue;
+
+    FIzabraniDobavljacID := AItem.Tag;
+    FIzabraniDobavljacNaziv := AItem.Text;
+
+    UcitajDeloveZaDobavljaca(FIzabraniDobavljacID);
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.OcistiSelekcije;
+var
+  InfoItem: TListViewItem;
+begin
+  lvAutodelovi.Items.Clear;
+  InfoItem := lvAutodelovi.Items.Add;
+  InfoItem.Text := 'Izaberite dobavljača';
+  InfoItem.Tag := -1;
+
+  FIzabraniDobavljacID := 0;
+  FIzabraniDobavljacNaziv := '';
+  FIzabraniDeoID := 0;
+  FIzabraniDeoNaziv := '';
+  FIzabranaCena := 0;
+end;
+
+procedure TKreirajPorudzbinuForm.ResetujFormu;
+begin
+  edtKolicina.Text := '';
+  OcistiSelekcije;
+  edtKolicina.SetFocus;
+  UcitajSveDobavljace;
+  lvKorpa.Items.Clear;
+  FKorpaDobavljacID := 0;
+end;
+
+procedure TKreirajPorudzbinuForm.IzracunajUkupnuCenu;
+var
+  i: Integer;
+  Stavka: TStringList;
+  UkupnaCena: Double;
+  ListItem: TListViewItem;
+begin
+  UkupnaCena := 0;
+
+  for i := 0 to lvKorpa.Items.Count - 1 do
+  begin
+    // Preskoči red sa ukupnom cenom ako već postoji
+    if lvKorpa.Items[i].Tag = -999 then
+      Continue;
+
+    Stavka := TStringList.Create;
+    try
+      Stavka.Delimiter := '|';
+      Stavka.DelimitedText := lvKorpa.Items[i].TagString;
+      // TagString format: DeoID|DobavljacID|CenaPoKomadu|Kolicina
+      if Stavka.Count >= 4 then
+        UkupnaCena := UkupnaCena + (StrToFloat(Stavka[2]) * StrToInt(Stavka[3]));
+    finally
+      Stavka.Free;
+    end;
+  end;
+
+  // Dodaj ili ažuriraj red sa ukupnom cenom na kraju korpe
+  if lvKorpa.Items.Count > 0 then
+  begin
+    // Proveri da li već postoji red sa ukupnom cenom (Tag = -999)
+    ListItem := nil;
+    for i := 0 to lvKorpa.Items.Count - 1 do
+    begin
+      if lvKorpa.Items[i].Tag = -999 then
+      begin
+        ListItem := lvKorpa.Items[i];
+        Break;
+      end;
+    end;
+
+    // Ako ne postoji, kreiraj novi
+    if ListItem = nil then
+    begin
+      ListItem := lvKorpa.Items.Add;
+      ListItem.Tag := -999; // Specijalna oznaka za ukupnu cenu
+    end;
+
+    // OVDE JE IZMENA - sada prikazuje cenu i u Text i u Detail
+    ListItem.Text := Format('UKUPNO: %.2f RSD', [UkupnaCena]);
+    ListItem.Detail := Format('Ukupna cena svih stavki', []);
+
+    if Assigned(ListItem.Objects.FindObjectT<TListItemText>('text')) then
+      ListItem.Objects.FindObjectT<TListItemText>('text').TextColor := TAlphaColors.Red;
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.BrisanjeKorpeClick(Sender: TObject);
+begin
+  if lvKorpa.Items.Count = 0 then
+  begin
+    ShowMessage('Korpa je već prazna.');
+    Exit;
+  end;
+
+  if MessageDlg('Da li ste sigurni da želite da obrišete sve stavke iz korpe?',
+    TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes then
+  begin
+    lvKorpa.Items.Clear;
+    FKorpaDobavljacID := 0;
+    ShowMessage('Korpa je obrisana.');
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.DodajUKorpuClick(Sender: TObject);
+var
+  Kolicina: Integer;
+  ListItem: TListViewItem;
+  UkupnaCenaStavke: Double;
+  i: Integer;
+  PostojiVecUKorpi: Boolean;
+begin
+  if FIzabraniDobavljacID <= 0 then
+  begin
+    ShowMessage('Molim vas prvo izaberite dobavljača!');
+    Exit;
+  end;
+
+  if FIzabraniDeoID <= 0 then
+  begin
+    ShowMessage('Molim vas izaberite deo iz liste!');
+    Exit;
+  end;
+
+  if Trim(edtKolicina.Text) = '' then
+  begin
+    ShowMessage('Molim vas unesite količinu!');
+    edtKolicina.SetFocus;
+    Exit;
+  end;
+
+  try
+    Kolicina := StrToInt(edtKolicina.Text);
+    if Kolicina <= 0 then
+    begin
+      ShowMessage('Količina mora biti veća od nule.');
+      edtKolicina.SetFocus;
+      Exit;
+    end;
+  except
+    on E: EConvertError do
+    begin
+      ShowMessage('Neispravan format za količinu. Molim vas unesite broj.');
+      edtKolicina.SetFocus;
+      Exit;
+    end;
+  end;
+
+  UkupnaCenaStavke := FIzabranaCena * Kolicina;
+
+  if (lvKorpa.Items.Count > 0) and (FKorpaDobavljacID <> FIzabraniDobavljacID) then
+  begin
+    ShowMessage('Korpa već sadrži delove od drugog dobavljača. Molimo vas da je ispraznite pre dodavanja novih delova.');
+    Exit;
+  end;
+
+  if lvKorpa.Items.Count = 0 then
+    FKorpaDobavljacID := FIzabraniDobavljacID;
+
+  // Proveri da li deo već postoji u korpi
+  PostojiVecUKorpi := False;
+  for i := 0 to lvKorpa.Items.Count - 1 do
+  begin
+    if lvKorpa.Items[i].Tag = FIzabraniDeoID then
+    begin
+      PostojiVecUKorpi := True;
+      ShowMessage('Ovaj deo je već dodat u korpu. Obrišite korpu i dodajte ponovo sa novom količinom.');
+      Exit;
+    end;
+  end;
+
+  ListItem := lvKorpa.Items.Add;
+  ListItem.Tag := FIzabraniDeoID;
+  ListItem.Text := Format('%s (%d kom)', [FIzabraniDeoNaziv, Kolicina]);
+  ListItem.Detail := Format('%.2f RSD', [UkupnaCenaStavke]);
+
+  // TagString format: DeoID|DobavljacID|CenaPoKomadu|Kolicina
+  ListItem.TagString := IntToStr(FIzabraniDeoID) + '|' +
+                        IntToStr(FIzabraniDobavljacID) + '|' +
+                        FloatToStr(FIzabranaCena) + '|' +
+                        IntToStr(Kolicina);
+
+  IzracunajUkupnuCenu;
+  edtKolicina.Text := '';
+end;
+
+procedure TKreirajPorudzbinuForm.btnPotvrdiClick(Sender: TObject);
+var
+  i: Integer;
+  Stavka: TStringList;
+  DeoID, DobavljacID, Kolicina: Integer;
+  CenaPoKomadu, UkupnaCenaStavke, UkupnaCenaPorudzbine: Double;
+  NazivDela: string;
+  NovaPorudzbinaID: Integer;
+begin
+  if lvKorpa.Items.Count = 0 then
+  begin
+    ShowMessage('Korpa je prazna. Molim vas dodajte delove pre potvrde porudžbine.');
+    Exit;
+  end;
+
+  // Proveri da li u korpi ima stvarnih stavki (ne računajući red sa ukupnom cenom)
+  if lvKorpa.Items.Count = 1 then
+  begin
+    ShowMessage('Korpa je prazna. Molim vas dodajte delove pre potvrde porudžbine.');
+    Exit;
+  end;
+
+  try
+    FDQueryInsert.Connection := Self.FDConnection1;
+
+    // Računamo ukupnu cenu cele porudžbine
+    UkupnaCenaPorudzbine := 0;
+    for i := 0 to lvKorpa.Items.Count - 1 do
+    begin
+      // Preskoči red sa ukupnom cenom
+      if lvKorpa.Items[i].Tag = -999 then
+        Continue;
+
+      Stavka := TStringList.Create;
+      try
+        Stavka.Delimiter := '|';
+        Stavka.DelimitedText := lvKorpa.Items[i].TagString;
+        if Stavka.Count >= 4 then
+        begin
+          CenaPoKomadu := StrToFloat(Stavka[2]);
+          Kolicina := StrToInt(Stavka[3]);
+          UkupnaCenaPorudzbine := UkupnaCenaPorudzbine + (CenaPoKomadu * Kolicina);
+        end;
+      finally
+        Stavka.Free;
+      end;
+    end;
+
+    // KORAK 1: Kreiramo JEDNU glavnu porudžbinu
+    FDQueryInsert.SQL.Text :=
+      'INSERT INTO Porudzbine (DobavljacID, NazivDobavljaca, KorisnikID, ' +
+      'UkupnaCena, DatumPorudzbine, Status) ' +
+      'VALUES (:DobavljacID, :NazivDobavljaca, :KorisnikID, ' +
+      ':UkupnaCena, :Datum, :Status)';
+
+    FDQueryInsert.ParamByName('DobavljacID').AsInteger := FKorpaDobavljacID;
+    FDQueryInsert.ParamByName('NazivDobavljaca').AsString := FIzabraniDobavljacNaziv;
+    FDQueryInsert.ParamByName('KorisnikID').AsInteger := UlogovaniKorisnikID;
+    FDQueryInsert.ParamByName('UkupnaCena').AsFloat := UkupnaCenaPorudzbine;
+    FDQueryInsert.ParamByName('Datum').AsDateTime := Now;
+    FDQueryInsert.ParamByName('Status').AsString := 'Naručeno';
+    FDQueryInsert.ExecSQL;
+
+    // Dobijamo ID novostvorene porudžbine
+    FDQueryInsert.SQL.Text := 'SELECT last_insert_rowid() AS NoviID';
+    FDQueryInsert.Open;
+    NovaPorudzbinaID := FDQueryInsert.FieldByName('NoviID').AsInteger;
+    FDQueryInsert.Close;
+
+    // KORAK 2: Dodajemo SVE stavke u tabelu StavkePorudzbine
+    FDQueryInsert.SQL.Text :=
+      'INSERT INTO StavkePorudzbine (PorudzbinaID, DeoID, NazivDela, ' +
+      'Kolicina, CenaPoKomadu, UkupnaCenaStavke) ' +
+      'VALUES (:PorudzbinaID, :DeoID, :NazivDela, ' +
+      ':Kolicina, :CenaPoKomadu, :UkupnaCenaStavke)';
+
+    for i := 0 to lvKorpa.Items.Count - 1 do
+    begin
+      // Preskoči red sa ukupnom cenom
+      if lvKorpa.Items[i].Tag = -999 then
+        Continue;
+
+      Stavka := TStringList.Create;
+      try
+        Stavka.Delimiter := '|';
+        Stavka.DelimitedText := lvKorpa.Items[i].TagString;
+
+        if Stavka.Count >= 4 then
+        begin
+          DeoID := StrToInt(Stavka[0]);
+          DobavljacID := StrToInt(Stavka[1]);
+          CenaPoKomadu := StrToFloat(Stavka[2]);
+          Kolicina := StrToInt(Stavka[3]);
+
+          NazivDela := StringReplace(lvKorpa.Items[i].Text,
+            Format(' (%d kom)', [Kolicina]), '', [rfReplaceAll, rfIgnoreCase]);
+
+          UkupnaCenaStavke := CenaPoKomadu * Kolicina;
+
+          FDQueryInsert.ParamByName('PorudzbinaID').AsInteger := NovaPorudzbinaID;
+          FDQueryInsert.ParamByName('DeoID').AsInteger := DeoID;
+          FDQueryInsert.ParamByName('NazivDela').AsString := NazivDela;
+          FDQueryInsert.ParamByName('Kolicina').AsInteger := Kolicina;
+          FDQueryInsert.ParamByName('CenaPoKomadu').AsFloat := CenaPoKomadu;
+          FDQueryInsert.ParamByName('UkupnaCenaStavke').AsFloat := UkupnaCenaStavke;
+
+          FDQueryInsert.ExecSQL;
+        end;
+      finally
+        Stavka.Free;
+      end;
+    end;
+
+    ShowMessage(Format('Porudžbina #%d je uspešno kreirana sa ukupnom cenom %.2f RSD!',
+      [NovaPorudzbinaID, UkupnaCenaPorudzbine]));
+    ResetujFormu;
+  except
+    on E: Exception do
+      ShowMessage('Greška prilikom upisa u bazu: ' + E.Message);
+  end;
+end;
+
+procedure TKreirajPorudzbinuForm.btnNazadClick(Sender: TObject);
+begin
+  Self.Close;
+end;
+
+end.

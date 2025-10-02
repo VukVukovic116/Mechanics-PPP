@@ -1,0 +1,147 @@
+object KreirajPorudzbinuForm: TKreirajPorudzbinuForm
+  Left = 0
+  Top = 0
+  Caption = 'Form3'
+  ClientHeight = 480
+  ClientWidth = 640
+  Fill.Color = claBeige
+  Fill.Kind = Solid
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object edtKolicina: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 0
+    KeyboardType = NumberPad
+    Position.X = 465.000000000000000000
+    Position.Y = 154.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object btnPotvrdi: TButton
+    Position.X = 465.000000000000000000
+    Position.Y = 263.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 34.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'POTVRDI'
+    TextSettings.Trimming = None
+    OnClick = btnPotvrdiClick
+  end
+  object btnNazad: TButton
+    Size.Width = 149.000000000000000000
+    Size.Height = 57.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'NAZAD'
+    TextSettings.Trimming = None
+    OnClick = btnNazadClick
+  end
+  object Label1: TLabel
+    Position.X = 35.000000000000000000
+    Position.Y = 96.000000000000000000
+    Text = 'Izaberi deo:'
+    TabOrder = 3
+  end
+  object Label2: TLabel
+    Position.X = 281.000000000000000000
+    Position.Y = 129.000000000000000000
+    Text = 'Izaberi dobavlja'#269'a:'
+    TabOrder = 4
+  end
+  object Label3: TLabel
+    Position.X = 465.000000000000000000
+    Position.Y = 129.000000000000000000
+    Text = 'Unesi koli'#269'inu:'
+    TabOrder = 5
+  end
+  object lvAutodelovi: TListView
+    ItemAppearanceClassName = 'TListItemAppearance'
+    ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+    HeaderAppearanceClassName = 'TListHeaderObjects'
+    FooterAppearanceClassName = 'TListHeaderObjects'
+    Position.Y = 154.000000000000000000
+    Size.Width = 257.000000000000000000
+    Size.Height = 333.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 9
+    OnItemClick = lvAutodeloviItemClick
+  end
+  object lvDobavljaci: TListView
+    ItemAppearanceClassName = 'TListItemAppearance'
+    ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+    HeaderAppearanceClassName = 'TListHeaderObjects'
+    FooterAppearanceClassName = 'TListHeaderObjects'
+    Position.X = 281.000000000000000000
+    Position.Y = 154.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 127.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    OnItemClick = lvDobavljaciItemClick
+  end
+  object btnUcitajPodatke: TButton
+    Position.Y = 121.000000000000000000
+    Size.Width = 257.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 11
+    Text = 'UCITAJ PODATKE'
+    TextSettings.Trimming = None
+    OnClick = btnUcitajPodatkeClick
+  end
+  object Label4: TLabel
+    Align = Top
+    Size.Width = 640.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.HorzAlign = Center
+    Text = 'KREIRANJE NARUDZBINE'
+    TabOrder = 14
+  end
+  object DodajUKorpu: TButton
+    Position.X = 465.000000000000000000
+    Position.Y = 203.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 17
+    Text = 'DodajUKorpu'
+    TextSettings.Trimming = None
+    OnClick = DodajUKorpuClick
+  end
+  object lvKorpa: TListView
+    ItemAppearanceClassName = 'TListItemAppearance'
+    ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+    HeaderAppearanceClassName = 'TListHeaderObjects'
+    FooterAppearanceClassName = 'TListHeaderObjects'
+    Position.X = 281.000000000000000000
+    Position.Y = 312.000000000000000000
+    Size.Width = 359.000000000000000000
+    Size.Height = 168.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 18
+  end
+  object BrisanjeKorpe: TButton
+    Position.X = 465.000000000000000000
+    Position.Y = 233.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 21
+    Text = 'btnObrisiKorpu'
+    TextSettings.Trimming = None
+    OnClick = BrisanjeKorpeClick
+  end
+  object FDQueryInsert: TFDQuery
+    Left = 576
+    Top = 16
+  end
+  object FDQueryLoad: TFDQuery
+    Left = 488
+    Top = 8
+  end
+end

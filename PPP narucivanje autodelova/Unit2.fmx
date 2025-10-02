@@ -1,0 +1,94 @@
+object GlavnaForma: TGlavnaForma
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 480
+  ClientWidth = 640
+  Fill.Color = claBeige
+  Fill.Kind = Solid
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object btnKreirajPorudzbinu: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 88.000000000000000000
+    Size.Width = 177.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'KREIRAJ PORUDZBINU'
+    OnClick = btnKreirajPorudzbinuClick
+  end
+  object btnPregledPorudzbina: TButton
+    Position.X = 209.000000000000000000
+    Position.Y = 87.000000000000000000
+    Size.Width = 184.000000000000000000
+    Size.Height = 41.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'PREGLED PORUDZBINA'
+    OnClick = btnPregledPorudzbinaClick
+  end
+  object Label1: TLabel
+    Size.Width = 640.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.HorzAlign = Center
+    Text = 'GLAVNI MENI'
+    TabOrder = 2
+  end
+  object Label2: TLabel
+    Position.X = 16.000000000000000000
+    Position.Y = 49.000000000000000000
+    Size.Width = 209.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Dodavanje nove porudzbine:'
+    TabOrder = 3
+  end
+  object Label3: TLabel
+    Position.X = 209.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 209.000000000000000000
+    Size.Height = 41.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Pregled i preuzimanje porudzbina:'
+    TabOrder = 4
+  end
+  object lvAutodelovi: TListView
+    ItemAppearanceClassName = 'TListItemAppearance'
+    ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+    HeaderAppearanceClassName = 'TListHeaderObjects'
+    FooterAppearanceClassName = 'TListHeaderObjects'
+    Position.Y = 136.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 344.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+  end
+  object Label4: TLabel
+    Position.X = 426.000000000000000000
+    Position.Y = 55.000000000000000000
+    Size.Width = 209.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Pregled dostupnih delova'
+    TabOrder = 6
+  end
+  object btnOsveziListu: TButton
+    Position.X = 426.000000000000000000
+    Position.Y = 87.000000000000000000
+    Size.Width = 151.000000000000000000
+    Size.Height = 41.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    Text = 'PREGLED DELOVA'
+    OnClick = btnOsveziListuClick
+  end
+  object FDQuery1: TFDQuery
+    Connection = LoginForm.FDConnection1
+    Left = 120
+    Top = 16
+  end
+end

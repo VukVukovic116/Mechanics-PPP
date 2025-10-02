@@ -1,0 +1,94 @@
+object PregledPorudzbinaForm: TPregledPorudzbinaForm
+  Left = 0
+  Top = 0
+  Caption = 'Form4'
+  ClientHeight = 480
+  ClientWidth = 778
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lvPorudzbine: TListView
+    ItemAppearanceClassName = 'TListItemAppearance'
+    ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+    HeaderAppearanceClassName = 'TListHeaderObjects'
+    FooterAppearanceClassName = 'TListHeaderObjects'
+    Size.Width = 570.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+  end
+  object Panel1: TPanel
+    Align = Right
+    Position.X = 570.000000000000000000
+    Size.Width = 208.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object btnNazad: TButton
+      Position.Y = 416.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'btnNazad'
+      OnClick = btnNazadClick
+    end
+    object btnOsvezi: TButton
+      Position.X = -1.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'btnOsvezi'
+      OnClick = btnOsveziClick
+    end
+    object btnPreuzmi: TButton
+      Position.Y = 112.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'btnPreuzmi'
+      OnClick = btnPreuzmiClick
+    end
+    object btnPrikaziStavke: TButton
+      Position.Y = 192.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'btnPrikaziStavke'
+      OnClick = btnPrikaziStavkeClick
+    end
+    object btnNazadNaListu: TButton
+      Position.Y = 342.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Text = 'btnNazadNaListu'
+      OnClick = btnNazadNaListuClick
+    end
+    object btnUTransport: TButton
+      Position.Y = 272.000000000000000000
+      Size.Width = 209.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'btnUTransport'
+      OnClick = btnUTransportClick
+    end
+  end
+  object FDQueryPregled: TFDQuery
+    Connection = LoginForm.FDConnection1
+    Left = 352
+    Top = 344
+  end
+  object FDQueryStavke: TFDQuery
+    Connection = LoginForm.FDConnection1
+    Left = 427
+    Top = 344
+  end
+end
